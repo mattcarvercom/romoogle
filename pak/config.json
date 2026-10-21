@@ -1,0 +1,8 @@
+{
+  "label": "Romoogle",
+  "launch": "launch.sh",
+  "description": "Indexed search for your ROM collection",
+  "platforms": [
+    "tg5040"
+  ]
+}

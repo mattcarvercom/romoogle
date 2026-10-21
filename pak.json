@@ -1,0 +1,16 @@
+{
+  "name": "Romoogle",
+  "version": "v1.0.0",
+  "type": "TOOL",
+  "description": "Indexed search for your ROM collection. One walk, then instant searches.",
+  "author": "mattcarvercom",
+  "repo_url": "https://github.com/mattcarvercom/romoogle",
+  "release_filename": "Romoogle.pak.zip",
+  "platforms": [
+    "tg5040"
+  ],
+  "launch": "launch.sh",
+  "changelog": {
+    "v1.0.0": "Initial release: one-pass ROM indexing, live fuzzy search, multi-disc grouping, selected-only artwork, and local Details."
+  }
+}

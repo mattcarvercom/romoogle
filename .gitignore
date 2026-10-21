@@ -1,0 +1,12 @@
+minui
+/include
+/lib
+/platform
+/romoogle-*
+/tmp/
+
+# Private design notes
+DESIGN.md
+
+# Local desktop test binaries
+pak/bin/desktop/
