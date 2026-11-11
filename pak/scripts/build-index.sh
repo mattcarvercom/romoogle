@@ -340,7 +340,22 @@ while IFS= read -r system; do
 done <"$SYSTEMS"
 
 # --- final aliases/search transform and JSON --------------------------------
-awk -F '\t' -v OFS='\t' -v roms="$ROMS_DIR" -f "$SCRIPT_DIR/index.awk" "$ALIASES" "$RAW" >"$TMP/final.tsv"
+# Pinyin keys are generated in index.awk from a table shipped with the pak.
+# System tags are passed so pinyin tokens that would exactly equal a system
+# key (e.g. 光波 -> "gb") can be dropped: system keys must stay unsearchable.
+PYFILE="$SCRIPT_DIR/pinyin.tsv"
+if [ ! -f "$PYFILE" ]; then
+    echo "Romoogle: pinyin table missing: $PYFILE" >&2
+    exit 1
+fi
+SYSKEYS="$(while IFS= read -r system; do
+    t="$(printf '%s\n' "$system" | sed -n 's/.*(\([^)]*\)).*/\1/p')"
+    [ -n "$t" ] || t="$system"
+    printf '%s\n' "$t"
+done <"$SYSTEMS" | awk '!s[tolower($0)]++ { printf "%s ", tolower($0) }')"
+
+awk -F '\t' -v OFS='\t' -v roms="$ROMS_DIR" -v pyfile="$PYFILE" -v syskeys="$SYSKEYS" \
+    -f "$SCRIPT_DIR/index.awk" "$ALIASES" "$RAW" >"$TMP/final.tsv"
 COUNT="$(wc -l <"$TMP/final.tsv" | tr -d ' ')"
 
 "$JQ" -R -s '
@@ -358,7 +373,7 @@ COUNT="$(wc -l <"$TMP/final.tsv" | tr -d ' ')"
 mv "$INDEX_FILE.new" "$INDEX_FILE"
 
 "$JQ" -n --argjson count "$COUNT" --argjson built_at "$(date +%s)" \
-    '{count: $count, built_at: $built_at, format: 1}' >"$META_FILE"
+    '{count: $count, built_at: $built_at, format: 2}' >"$META_FILE"
 
 if [ -n "$PROGRESS_FILE" ]; then
     printf 'Indexed %s games\n' "$COUNT" >"$PROGRESS_FILE"

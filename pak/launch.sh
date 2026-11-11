@@ -73,6 +73,16 @@ index_count() {
     fi
 }
 
+# Index format 2 added pinyin keys to the search fields; older indexes need
+# a rebuild before pinyin search works.
+index_format() {
+    if [ -f "$META_FILE" ] && [ -n "$JQ" ]; then
+        "$JQ" -r '.format // 1' "$META_FILE" 2>/dev/null || echo 1
+    else
+        echo 1
+    fi
+}
+
 ask_build() {
     p="$(presenter)"
     [ -n "$p" ] || return 0
@@ -303,6 +313,22 @@ main() {
         fi
         build_index || return 1
         show_message "Indexed $(index_count) games" 2
+    elif [ "$(index_format)" -lt 2 ]; then
+        p="$(presenter)"
+        if [ -n "$p" ]; then
+            message="$(printf '%b' "Rebuild the index?\n\nA one-time rebuild adds pinyin search\nfor Chinese titles. Large cards can take a few minutes.")"
+            "$p" --message "$message" \
+                --confirm-button A --confirm-text RESCAN --confirm-show \
+                --cancel-button B --cancel-text BACK \
+                --timeout 0 --disable-auto-sleep
+            stale_rc=$?
+        else
+            stale_rc=0
+        fi
+        if [ "$stale_rc" -eq 0 ]; then
+            build_index || return 1
+            show_message "Indexed $(index_count) games" 2
+        fi
     fi
 
     rm -f "$STATE_FILE" "$FILTER_FILE" "$KEYBOARD_STATE_FILE"
